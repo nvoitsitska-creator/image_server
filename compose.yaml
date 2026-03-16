@@ -1,0 +1,28 @@
+services:
+  app:
+    build: .
+    container_name: image-server-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app.py:/app/app.py
+      - ./static:/app/static
+      - ./images:/app/images
+      - ./logs:/app/logs
+    environment:
+      - IMAGES_DIR=/app/images
+      - LOGS_DIR=/app/logs
+      - STATIC_DIR=/app/static
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: image-server-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./images:/images:ro
+    depends_on:
+      - app
+    restart: unless-stopped
