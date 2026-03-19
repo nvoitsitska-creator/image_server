@@ -19,7 +19,7 @@ COPY app.py .
 COPY static/ ./static/
 
 # Створюємо директорії для даних
-RUN mkdir -p /app/images /app/logs
+RUN mkdir -p /app/images /app/logs /app/backups
 
 EXPOSE 8000
 

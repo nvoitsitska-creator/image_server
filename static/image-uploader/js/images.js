@@ -1,10 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-    document.addEventListener('keydown', function (event) {
-        if (event.key === 'F5' || event.key === 'Escape') {
-            event.preventDefault();
-            window.location.href = '/upload';
-        }
-    });
+    registerKeyboardShortcuts('/upload');
+
     const fileListWrapper = document.getElementById('file-list-wrapper');
     const uploadRedirectButton = document.getElementById('upload-tab-btn');
 
@@ -14,19 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return div.innerHTML;
     };
 
-    const updateTabStyles = () => {
-        const uploadTab = document.getElementById('upload-tab-btn');
-        const imagesTab = document.getElementById('images-tab-btn');
-
-        const isImagesPage = window.location.pathname.includes('images');
-
-        uploadTab.classList.remove('upload__tab--active');
-        imagesTab.classList.remove('upload__tab--active');
-
-        if (isImagesPage) {
-            imagesTab.classList.add('upload__tab--active');
-        } else {
-            uploadTab.classList.add('upload__tab--active');
+    const deleteFromServer = async (imageUrl) => {
+        try {
+            const response = await fetch(imageUrl, { method: 'DELETE' });
+            return response.ok;
+        } catch (error) {
+            console.error('Failed to delete from server:', error);
+            return false;
         }
     };
 
@@ -48,21 +38,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const header = document.createElement('div');
             header.className = 'file-list-header';
 
-            const colName = document.createElement('div');
-            colName.className = 'file-col file-col-name';
-            colName.textContent = 'Name';
+            ['Name', 'Url', 'Delete'].forEach(label => {
+                const col = document.createElement('div');
+                col.className = `file-col file-col-${label.toLowerCase()}`;
+                col.textContent = label;
+                header.appendChild(col);
+            });
 
-            const colUrl = document.createElement('div');
-            colUrl.className = 'file-col file-col-url';
-            colUrl.textContent = 'Url';
-
-            const colDelete = document.createElement('div');
-            colDelete.className = 'file-col file-col-delete';
-            colDelete.textContent = 'Delete';
-
-            header.appendChild(colName);
-            header.appendChild(colUrl);
-            header.appendChild(colDelete);
             container.appendChild(header);
 
             const list = document.createElement('div');
@@ -102,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'delete-btn';
                 deleteBtn.dataset.index = index;
+                deleteBtn.dataset.url = fileData.url;
                 const deleteImg = document.createElement('img');
                 deleteImg.src = '/image-uploader/img/icon/delete.png';
                 deleteImg.alt = 'delete icon';
@@ -124,8 +107,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const addDeleteListeners = () => {
         document.querySelectorAll('.delete-btn').forEach(button => {
-            button.addEventListener('click', (event) => {
-                const indexToDelete = parseInt(event.currentTarget.dataset.index);
+            button.addEventListener('click', async (event) => {
+                const btn = event.currentTarget;
+                const indexToDelete = parseInt(btn.dataset.index);
+                const imageUrl = btn.dataset.url;
+
+                await deleteFromServer(imageUrl);
+
                 let storedFiles = JSON.parse(localStorage.getItem('uploadedImages')) || [];
                 storedFiles.splice(indexToDelete, 1);
                 localStorage.setItem('uploadedImages', JSON.stringify(storedFiles));
