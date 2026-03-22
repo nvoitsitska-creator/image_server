@@ -1,34 +1,11 @@
-document.addEventListener('DOMContentLoaded', function () {
-    document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape' || event.key === 'F5') {
-            event.preventDefault();
-            window.location.href = '/';
-        }
-    });
-});
-
 document.addEventListener('DOMContentLoaded', () => {
+    registerKeyboardShortcuts('/');
+
     const fileUpload = document.getElementById('file-upload');
     const imagesButton = document.getElementById('images-tab-btn');
     const dropzone = document.querySelector('.upload__dropzone');
     const currentUploadInput = document.querySelector('.upload__input');
     const copyButton = document.querySelector('.upload__copy');
-
-    const updateTabStyles = () => {
-        const uploadTab = document.getElementById('upload-tab-btn');
-        const imagesTab = document.getElementById('images-tab-btn');
-
-        const isImagesPage = window.location.pathname.includes('images');
-
-        uploadTab.classList.remove('upload__tab--active');
-        imagesTab.classList.remove('upload__tab--active');
-
-        if (isImagesPage) {
-            imagesTab.classList.add('upload__tab--active');
-        } else {
-            uploadTab.classList.add('upload__tab--active');
-        }
-    };
 
     const uploadFileToServer = async (file) => {
         const formData = new FormData();
@@ -63,13 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const handleFiles = async (files) => {
-        if (!files || files.length === 0) {
-            return;
-        }
+        if (!files || files.length === 0) return;
 
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-        const MAX_SIZE_MB = 5;
-        const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+        const MAX_SIZE_BYTES = 5 * 1024 * 1024;
         let filesUploaded = false;
 
         for (const file of files) {
@@ -83,9 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const success = await uploadFileToServer(file);
-            if (success) {
-                filesUploaded = true;
-            }
+            if (success) filesUploaded = true;
         }
 
         if (filesUploaded) {
@@ -98,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const textToCopy = currentUploadInput.value;
 
             if (textToCopy && textToCopy !== 'https://') {
-                navigator.clipboard.writeText(textToCopy).then(() => {
+                copyToClipboard(textToCopy).then(() => {
                     copyButton.textContent = 'COPIED!';
                     setTimeout(() => {
                         copyButton.textContent = 'COPY';

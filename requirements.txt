@@ -1,2 +1,3 @@
 Pillow
 legacy-cgi
+psycopg2-binary
